@@ -97,3 +97,36 @@ parse_conn <- function(conn) {
   }
   return(purrr::pluck(env, field_name))
 }
+
+
+#' @description
+#'   Function that parses the given module to a hash value (with exclusion)
+#' @param module (`R6 instance`)\cr
+#'   The `R6 instance` to compute hash for
+#' @param exclude (`character`)\cr
+#'   The names of the fields to exclude from the hash (including in nested modules)
+#' @return (`character`)\cr
+#'   The (reduced) hash of the module environment
+hash_module = function(module, exclude = NULL) {
+
+  # Capture module environment (parent of this environment)
+  public_names <- ls(module) # public (fields and functions)
+  public_names <- purrr::discard(public_names, public_names %in% c("hash", exclude)) # Exclude fields
+
+  # Retrieve the subset of fields
+  public_env <- purrr::map(public_names, ~ purrr::pluck(module, .))
+  names(public_env) <- public_names
+
+  # Iteratively map the public environment to hashes
+  hash_list <- public_env |>
+    purrr::map_if(checkmate::test_r6, ~ hash_module(., exclude)) |> # All modules call their hash routines
+    purrr::map_if(checkmate::test_function,        # For functions, we hash their attributes
+                  ~ digest::digest(attributes(.)))
+
+  # Add the class name to "salt" the hashes
+  hash_list <- c(purrr::discard(hash_list, is.null), class = class(self)[1]) |>
+    purrr::map_chr(digest::digest)
+
+  # Reduce to single hash and return
+  return(digest::digest(hash_list[order(names(hash_list))]))
+}

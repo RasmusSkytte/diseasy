@@ -118,26 +118,7 @@ DiseasyBaseModule <- R6::R6Class( # nolint: object_name_linter
     hash = purrr::partial(
       .f = active_binding, # nolint start: indentation_linter
       name = "hash",
-      expr = {
-        # Capture module environment (parent of this environment)
-        public_names <- ls(self) # public (fields and functions)
-        public_names <- public_names[public_names != "hash"] # avoid recursion
-        public_env <- purrr::map(public_names, ~ purrr::pluck(self, .))
-        names(public_env) <- public_names
-
-        # Iteratively map the public environment to hashes
-        hash_list <-  public_env |>
-          purrr::map_if(checkmate::test_r6, ~ .$hash) |> # All modules call their hash routines
-          purrr::map_if(checkmate::test_function,        # For functions, we hash their attributes
-                        ~ digest::digest(attributes(.)))
-
-        # Add the class name to "salt" the hashes
-        hash_list <- c(hash_list[!purrr::map_lgl(hash_list, is.null)], class = class(self)[1]) |>
-          purrr::map_chr(digest::digest)
-
-        # Reduce to single hash and return
-        return(digest::digest(hash_list[order(names(hash_list))]))
-      }) # nolint end
+      expr = return(hash_module(self))) # nolint end
   ),
 
   private = list(
@@ -267,11 +248,8 @@ DiseasyBaseModule <- R6::R6Class( # nolint: object_name_linter
       return(substring(hash, 1, 10))
     },
 
-    # Errors
-    read_only_error = function(field) {
-      stop(glue::glue("`${field}` is read only"), call. = FALSE)
-    },
 
+    # Errors
     not_implemented_error = function(...) {
       stop("Not implemented: ", glue::glue_collapse(...), call. = FALSE)
     },
