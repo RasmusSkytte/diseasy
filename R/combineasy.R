@@ -29,9 +29,8 @@ combineasy <- function(model_generators, modules = NULL, parameters = NULL) {
     disallowed_module <- module_classes |>
       purrr::discard( ~ . %in% c("DiseasyObservables", "DiseasyActivity", "DiseasySeason"))
 
-    purrr::walk2(
+    purrr::iwalk(
       disallowed_module,
-      names(disallowed_module),
       ~ {
         coll$push(
           glue::glue(
@@ -69,6 +68,9 @@ combineasy <- function(model_generators, modules = NULL, parameters = NULL) {
 
   # Report assertions
   checkmate::reportAssertions(coll)
+
+
+
 
   # First, we initialize the models with the modules
   models_modules_loaded <- models_empty |>
