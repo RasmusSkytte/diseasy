@@ -24,6 +24,10 @@ reference:
     contents:
     - has_keyword("data")
 
+  - title: Helper functions
+    contents:
+    - plot
+
   - title: Developer functions
     desc: Functions to create model templates.
     contents:
@@ -32,6 +36,7 @@ reference:
     - DiseasyModelOde
     - diseasyoption
     - hypoexponential
+    - hash_environment
 
 articles:
 - title: Functional modules
@@ -48,3 +53,8 @@ articles:
   navbar: Model notes
   contents:
   - starts_with("articles/SEIR")
+
+- title: Additional information
+  navbar: Additional information
+  contents:
+  - starts_with("articles/")
